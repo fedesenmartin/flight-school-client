@@ -2,6 +2,7 @@ import React from 'react';
 import { DialogContent, Grid, TextField, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox } from '@mui/material';
 import PilotDropdown from './pilotdropdown';
 import AirportsDropdown from './airportsdropdown';
+import PlanesDropDown from './planesdropdown';
 
 const FlightRecordForm = ({
   formData,
@@ -24,19 +25,13 @@ const FlightRecordForm = ({
             InputLabelProps={{ shrink: true }}
           />
         </Grid>
-        <Grid item xs={6}>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Plane</InputLabel>
-            <Select
-              name="Avion"
-              value={formData.plane}
-              onChange={handleFormChange}
-            >
-              <MenuItem value="LV-CZG">LV-CZG</MenuItem>
-              <MenuItem value="LV-CZG">LV-CZG</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
+
+        <PlanesDropDown 
+            formData={formData} 
+            handleFormChange={handleFormChange} 
+            label="Plane" 
+            name="plane" 
+        />
 
         <PilotDropdown 
             formData={formData} 

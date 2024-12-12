@@ -189,7 +189,7 @@ const Pilots = ({ setSelectedContent }) => {
                 margin="normal"
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12}>
               <TextField
                 label="Last Name"
                 fullWidth

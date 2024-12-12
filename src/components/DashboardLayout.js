@@ -18,7 +18,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import DataGridDemo from './recordsTable';
 import PilotScreen from './pilotScreen';
-
+import PilotDetail from './pilotDetails';
 
 
 const drawerWidth = 240;
@@ -83,7 +83,16 @@ function ResponsiveDrawer(props) {
 
   // Remove this const when copying and pasting into your project.
   const container = window !== undefined ? () => window().document.body : undefined;
-
+  const pilotData = { name: 'John', lastname: 'Doe', document: '123456', medicalAptitude: '2024-12-11' };
+  const planesData = [
+    { code: 'LV-CZG', hoursFlown: 20, amountPaid: 500 },
+    { code: 'LV-S074', hoursFlown: 20, amountPaid: 500 },
+    { code: 'LV-MWC', hoursFlown: 20, amountPaid: 500 },
+    { code: 'LV-MLB', hoursFlown: 15, amountPaid: 300 },
+  ];
+  const flightsData = [
+    { id: 1, date: '2024-12-01', plane: 'LV-CZG', hours: 2, origin: 'A', destination: 'B', payment: 100 },
+  ];
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
@@ -151,7 +160,16 @@ function ResponsiveDrawer(props) {
           {selectedContent === 'Pilotos' && <PilotScreen setSelectedContent={setSelectedContent} ></PilotScreen>}
           {selectedContent === 'Aviones' && <div>Planes Content</div>}
           {selectedContent === 'Finanzas' && <div>Finance Content</div>}
-          {selectedContent === 'pilot-details' && <div>Pilot</div>}
+          {selectedContent === 'pilot-details' && 
+            <PilotDetail
+            pilotData={pilotData}
+            planesData={planesData}
+            flightsData={flightsData}
+            onNewRAV={() => console.log('New RAV')}
+            onNewPayment={() => console.log('New Payment')}
+            onNewFlight={() => console.log('New Flight')}
+          />
+          }
 
 
           

@@ -105,7 +105,7 @@ query listPlanes{
 `;
 
 export const GET_AIRPORTS = gql`
-query listPlanes{
+query listAirports{
    airports(pagination: { limit: 500 }){
     data{
     	attributes{
