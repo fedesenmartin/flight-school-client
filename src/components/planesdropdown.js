@@ -15,7 +15,7 @@ const PlanesDropDown = ({ formData, handleFormChange }) => {
 
   // Handle the change of pilot in the dropdown
   const handlePlaneChange = (event, value) => {
-    const planeName = value ? value.attributes.name : ''; // If the value is selected, update the pilot ID
+    const planeName = value ? value.attributes.code : ''; // If the value is selected, update the pilot ID
     setLocalPlane(planeName); // Update local state when the user selects a pilot
     handleFormChange({
       target: {

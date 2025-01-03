@@ -10,6 +10,7 @@ const FlightRecordForm = ({
   handleSubmit,
   editing,
 }) => {
+  const date = new Date().toLocaleDateString('es-AR')
   return (
     <DialogContent>
       <Grid container spacing={2}>

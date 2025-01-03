@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { DataGrid } from '@mui/x-data-grid';
-import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Card, CardContent, Typography, Hidden, Accordion, AccordionSummary, AccordionDetails, IconButton } from '@mui/material';
+import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { GET_FLIGHT_RECORDS } from '../graphql/queries';
 import { CREATE_FLIGHT_RECORD, UPDATE_FLIGHT_RECORD } from '../graphql/mutations';
 import client from '../lib/apolloClient';
+import { DataGrid } from '@mui/x-data-grid';
 import FlightRecordForm from './FlightRecordsForm'; // New form component
 import LoadingComponent from './common/LoadingComponent';
 import { esES } from '@mui/x-data-grid/locales';
@@ -33,7 +34,6 @@ const FlightRecords = ({ setSelectedContent }) => {
     pilot: '',
   });
 
-  
   const handleOpenDialog = (record = null) => {
     setSelectedRecord(record);
     setFormData({
@@ -88,9 +88,8 @@ const FlightRecords = ({ setSelectedContent }) => {
       console.error('Error saving flight record:', error);
     }
   };
-  if (loading) 
-    return <LoadingComponent />;
-  
+
+  if (loading) return <LoadingComponent />;
   if (error) return <div>Error: {error.message}</div>;
 
   const rows = data.flightRecords.data.map((record) => ({
@@ -125,18 +124,15 @@ const FlightRecords = ({ setSelectedContent }) => {
   ];
 
   const updatedColumns = columns.map((column, index) => {
-    // const navigate = useNavigate(); // Correct usage of useNavigate
-
     if (index === 2) {
       return {
         ...column,
         renderCell: (params) => (
           <span
-            onClick={(e) =>{
-              setSelectedContent('pilot-details')
+            onClick={(e) => {
+              setSelectedContent('pilot-details');
               e.stopPropagation();
-            }
-            }// Navigate to the desired route with row ID
+            }}
             style={{ cursor: 'pointer' }}
           >
             {params.value}
@@ -146,7 +142,7 @@ const FlightRecords = ({ setSelectedContent }) => {
     }
     return column;
   });
-  
+
   return (
     <div>
       <Button
@@ -157,27 +153,65 @@ const FlightRecords = ({ setSelectedContent }) => {
       >
         Nuevo Vuelo
       </Button>
-      <div style={{ height: '80vh', width: '100%' }}>
-      <div style={{ height: '100%', width: '100%'}}>
-        
-      <DataGrid localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-        rows={rows}
-        columns={updatedColumns}
-        pageSize={5}
-        rowsPerPageOptions={[5]}
-        onRowClick={(params) => handleOpenDialog(params.row)}
-      />
-      </div>
-      </div>
+
+      {/* Cards for mobile screens */}
+      <Hidden smUp>
+        {rows.map((row) => (
+          <Card key={row.id} style={{ marginBottom: 16, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', borderRadius: '8px' }}>
+            <CardContent>
+              <Typography variant="h6" style={{ fontWeight: 'bold' }}>{`Plane: ${row.plane}`}</Typography>
+              <Typography variant="subtitle1" color="textSecondary">{`Pilot: ${row.pilot}`}</Typography>
+              <Typography variant="body2" color="textSecondary">{`Date: ${row.date}`}</Typography>
+
+              {/* Collapsible Section */}
+              <Accordion elevation={0} style={{ boxShadow: 'none', border: '0px solid #ccc', borderRadius: 0 }}>
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  aria-controls={`panel${row.id}-content`}
+                  id={`panel${row.id}-header`}
+                >
+                  <Typography variant="body2" style={{ fontWeight: 'bold' }}>See More Details</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography>{`Flight Type: ${row.type}`}</Typography>
+                  <Typography>{`Hours: ${row.hours}`}</Typography>
+                  <Typography>{`Instructor: ${row.instructor}`}</Typography>
+                  <Typography>{`Arrival Time: ${row.arrival_time}`}</Typography>
+                  <Typography>{`Departure Time: ${row.departure_time}`}</Typography>
+                  <Typography>{`Arrival Airport: ${row.arrival_airport}`}</Typography>
+                  <Typography>{`Departure Airport: ${row.departure_airport}`}</Typography>
+                </AccordionDetails>
+              </Accordion>
+            </CardContent>
+          </Card>
+        ))}
+      </Hidden>
+
+      {/* DataGrid for larger screens */}
+      <Hidden xsDown>
+        <div style={{ height: '80vh', width: '100%' }}>
+          <DataGrid
+            localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+            rows={rows}
+            columns={updatedColumns}
+            pageSize={5}
+            rowsPerPageOptions={[5]}
+            onRowClick={(params) => handleOpenDialog(params.row)}
+          />
+        </div>
+      </Hidden>
+
       {/* Dialog for creating/editing flight record */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>{selectedRecord ? 'Editar Vuelo' : 'Nuevo Vuelo'}</DialogTitle>
-        <FlightRecordForm
-          formData={formData}
-          handleFormChange={handleFormChange}
-          handleSubmit={handleSubmit}
-          editing={!!selectedRecord}
-        />
+        <DialogContent>
+          <FlightRecordForm
+            formData={formData}
+            handleFormChange={handleFormChange}
+            handleSubmit={handleSubmit}
+            editing={!!selectedRecord}
+          />
+        </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="primary">
             Cancel

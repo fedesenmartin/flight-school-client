@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { DataGrid } from '@mui/x-data-grid';
 import {
@@ -10,7 +9,15 @@ import {
   DialogTitle,
   TextField,
   Grid,
+  Typography,
+  Card,
+  CardContent,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Hidden,
 } from '@mui/material';
+import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import Autocomplete from '@mui/material/Autocomplete';
 import { GET_PILOTS } from '../graphql/queries';
 import { CREATE_PILOT } from '../graphql/mutations';
@@ -21,7 +28,9 @@ import { esES } from '@mui/x-data-grid/locales';
 const LICENSE_TYPES = ['APPA', 'PPA', 'PCA', 'IV', 'TLA', 'PC1'];
 
 const Pilots = ({ setSelectedContent }) => {
-
+  const [searchText, setSearchText] = useState(''); // Add this line for search state
+  const [flightSchools, setFlightSchools] = useState([]); // Example multi-select dropdown for schools
+  const [vuelos, setVuelos] = useState([]); // Example multi-select dropdown for flights
   const { loading, error, data } = useQuery(GET_PILOTS, { client });
   const [createPilot] = useMutation(CREATE_PILOT, { client });
   const [open, setOpen] = useState(false);
@@ -32,10 +41,8 @@ const Pilots = ({ setSelectedContent }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [document, setDocument] = useState('');
   const [medicalAptitude, setMedicalAptitude] = useState('');
-  const [flightSchools, setFlightSchools] = useState([]); // Example multi-select dropdown for schools
-  const [vuelos, setVuelos] = useState([]); // Example multi-select dropdown for flights
+  const [document, setDocument] = useState('');
   const formatDate = (date) => {
     if (!date) return null;
     const d = new Date(date);
@@ -44,61 +51,6 @@ const Pilots = ({ setSelectedContent }) => {
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
-
-  if (loading) 
-    return <LoadingComponent />;
-  
-  if (error) return <div>Error: {error.message}</div>;
-
-  const rows = data.listPilotsBalance.map((entry, index) => ({
-    id: index,
-    name: entry.pilot.attributes.name,
-    licenceType: entry.pilot.attributes.licence_type,
-    phoneNumber: entry.pilot.attributes.phone_number,
-    email: entry.pilot.attributes.email,
-    medicalAptitude: entry.pilot.attributes.medical_aptitude || '',
-    totalBalance: entry.balance.total_balance,
-  }));
-
-  const columns = [
-    { field: 'name', headerName: 'Name', width: 180 },
-    { field: 'licenceType', headerName: 'License Type', width: 150 },
-    { field: 'phoneNumber', headerName: 'Phone Number', width: 180 },
-    { field: 'email', headerName: 'Email', width: 200 },
-    { field: 'medicalAptitude', headerName: 'Medical Aptitude', width: 150 },
-    { field: 'totalBalance', headerName: 'Total Balance', width: 150 },
-  ];
-
-
-  const handleOpenDialog = (row = null) => {
-    if (row) {
-      setEditing(true);
-      setSelectedRow(row);
-      setName(row.name);
-      setLicenseType(row.licenceType);
-      setPhoneNumber(row.phoneNumber);
-      setEmail(row.email);
-      setMedicalAptitude(row.medicalAptitude);
-    } else {
-      setEditing(false);
-      setName('');
-      setLicenseType('');
-      setPhoneNumber('');
-      setEmail('');
-      setDocument('');
-      setMedicalAptitude('');
-      setFlightSchools([]);
-      setVuelos([]);
-    }
-    setOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpen(false);
-    setSelectedRow(null);
-  };
-
-
   const handleAddOrUpdatePilot = async () => {
     try {
       const medicalAptitudeDate = formatDate(new Date(medicalAptitude).toISOString());
@@ -126,33 +78,63 @@ const Pilots = ({ setSelectedContent }) => {
       console.error('Error saving pilot:', error);
     }
   };
-  const updatedColumns = columns.map((column, index) => {
-    // const navigate = useNavigate(); // Correct usage of useNavigate
 
-    if (index === 0) {
-      return {
-        ...column,
-        renderCell: (params) => (
-          <span
-            onClick={(e) =>{
-              setSelectedContent('pilot-details')
-              console.log('fzenma')
-              e.stopPropagation();
-              // useNavigate()
-              // handleNameClick(params.rows)
-            }
-            }// Navigate to the desired route with row ID
-            style={{ cursor: 'pointer' }}
-          >
-            {params.value}
-          </span>
-        ),
-      };
+  if (loading) return <LoadingComponent />;
+  if (error) return <div>Error: {error.message}</div>;
+
+  const rows = data.listPilotsBalance
+  .map((entry, index) => ({
+    id: index,
+    name: entry.pilot.attributes.name,
+    licenceType: entry.pilot.attributes.licence_type,
+    phoneNumber: entry.pilot.attributes.phone_number,
+    email: entry.pilot.attributes.email,
+    medicalAptitude: entry.pilot.attributes.medical_aptitude || '',
+    totalBalance: entry.balance.total_balance,
+  }))
+  .filter((row) => row.name.toLowerCase().includes(searchText.toLowerCase())); // Add this filter logic
+
+
+  const columns = [
+    { field: 'name', headerName: 'Name', width: 180 },
+    { field: 'licenceType', headerName: 'License Type', width: 150 },
+    { field: 'phoneNumber', headerName: 'Phone Number', width: 180 },
+    { field: 'email', headerName: 'Email', width: 200 },
+    { field: 'medicalAptitude', headerName: 'Medical Aptitude', width: 150 },
+    { field: 'totalBalance', headerName: 'Total Balance', width: 150 },
+  ];
+
+  const handleOpenDialog = (row = null) => {
+    if (row) {
+      setEditing(true);
+      setSelectedRow(row);
+      setName(row.name);
+      setLicenseType(row.licenceType);
+      setPhoneNumber(row.phoneNumber);
+      setEmail(row.email);
+      setMedicalAptitude(row.medicalAptitude);
+    } else {
+      setEditing(false);
+      setName('');
+      setLicenseType('');
+      setPhoneNumber('');
+      setEmail('');
+      setMedicalAptitude('');
     }
-    return column;
-  });
+    setOpen(true);
+  };
+
+  const handleCloseDialog = () => setOpen(false);
+
   return (
     <div>
+       <TextField
+        label="Search Pilots"
+        fullWidth
+        margin="normal"
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
+      />
       <Button
         variant="contained"
         color="primary"
@@ -162,21 +144,47 @@ const Pilots = ({ setSelectedContent }) => {
         Nuevo Piloto
       </Button>
 
-       <div style={{ height: '80vh', width: '100%' }}>
-      <div style={{ height: '100%', width: '100%'}}>
-      <DataGrid localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-          rows={rows}
-          columns={updatedColumns}
-          pageSize={5}
-          rowsPerPageOptions={[5]}
-          onRowClick={(params) => handleOpenDialog(params.row)}
-        />
-      </div>
-    </div>
+      {/* Cards for mobile screens */}
+      <Hidden smUp>
+        {rows.map((row) => (
+          <Card key={row.id} style={{ marginBottom: 16, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', borderRadius: '8px' }}>
+            <CardContent>
+              <Typography variant="h6" style={{ fontWeight: 'bold' }}>{`Name: ${row.name}`}</Typography>
+              <Typography variant="subtitle1" color="textSecondary">{`License Type: ${row.licenceType}`}</Typography>
+              <Typography variant="body2" color="textSecondary">{`Phone: ${row.phoneNumber}`}</Typography>
 
+              {/* Collapsible Section */}
+              <Accordion elevation={0} style={{ boxShadow: 'none', border: '0px solid #ccc', borderRadius: 0 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="body2" style={{ fontWeight: 'bold' }}>See More Details</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography>{`Email: ${row.email}`}</Typography>
+                  <Typography>{`Medical Aptitude: ${row.medicalAptitude}`}</Typography>
+                  <Typography>{`Total Balance: ${row.totalBalance}`}</Typography>
+                </AccordionDetails>
+              </Accordion>
+            </CardContent>
+          </Card>
+        ))}
+      </Hidden>
 
-      {/* Dialog for adding/editing a pilot */}
-      <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      {/* DataGrid for larger screens */}
+      <Hidden xsDown>
+        <div style={{ height: '80vh', width: '100%' }}>
+          <DataGrid
+            localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+            rows={rows}
+            columns={columns}
+            pageSize={5}
+            rowsPerPageOptions={[5]}
+            onRowClick={(params) => handleOpenDialog(params.row)}
+          />
+        </div>
+      </Hidden>
+
+     {/* Dialog for adding/editing a pilot */}
+     <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{editing ? 'Editar Piloto' : 'Crear Piloto'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
